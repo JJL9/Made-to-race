@@ -215,6 +215,8 @@ Priority key: **P0** = MVP (must prove the core loop) · **P1** = core-loop dept
 
 **Open Decisions:** launch map count, course types, checkpoint/lap format.
 
+Track conditions multiply course variety — see §6.9.
+
 ### 6.4 Race Rules & Flow — P0 (minimal), P1 (real format)
 
 | ID | Priority | Requirement | Acceptance criteria |
@@ -268,7 +270,20 @@ Priority key: **P0** = MVP (must prove the core loop) · **P1** = core-loop dept
 | AV-2 | P3 | Audio: engine, collisions, UI, build interactions, music | Audio feedback supports comedy and clarity |
 | AV-3 | P3 | Optimization pass: load times, memory, shader budgets | Launch perf gates pass (see PHY-6) |
 
-### 6.9 Steam Integration — P2 (playtest), P3 (launch)
+### 6.9 Weather & Track Conditions — P1 (first condition), P2 (rest) — **Proposed**
+
+| ID | Priority | Requirement | Acceptance criteria |
+|---|---|---|---|
+| WTH-1 | P1 | Match condition is announced during course inspection (race-day briefing) before the build phase | Player knows the condition before building; condition is session-consistent for the whole match |
+| WTH-2 | P1 | One dominant condition per match initially: Clear, Rain, Windy, Cold — no stacked combos in the default rotation | No combo conditions ship in the default rotation |
+| WTH-3 | P1 | Rain: reduced grip; rain tires grip in wet but underperform in dry, slicks the reverse | Compound choice measurably changes race performance; puddles create line-choice skill moments |
+| WTH-4 | P2 | Windy: directional wind force; aero parts counter it but add weight/drag | Forecast direction announced pre-race; gusts telegraphed visually (flags, particles) |
+| WTH-5 | P2 | Cold: tires start cold and warm up; compound choice (soft grips cold but overheats, hard fast when warm, risky lap 1) | Tire temperature is legible via UI; first-lap cold grip reads as skill, not randomness |
+| WTH-6 | P2 | Every condition has a build counter and a skill counter; all effects are visible (wet sheen, spray, wind visuals, temp UI) | Playtesters can name the active condition and what to build for it |
+
+Design notes in `GAME_OVERVIEW.md`; not part of the MVP — candidate for the first P1/P2 systems (mostly parameter modulation on top of existing physics).
+
+### 6.10 Steam Integration — P2 (playtest), P3 (launch)
 
 | ID | Priority | Requirement | Acceptance criteria |
 |---|---|---|---|
