@@ -1,68 +1,144 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MadeToRace.Vehicle
 {
     /// <summary>
-    /// Drives the assembled vehicle: applies throttle/steering forces to the
-    /// vehicle's Rigidbody. Owns no building or race rules (see docs/ARCHITECTURE.md).
+    /// Drives the assembled vehicle through its four wheel models: raycast
+    /// suspension + friction-limited contact (friction circle). Engine force
+    /// follows a real power curve (F = P/v) traction-capped by driven-wheel
+    /// grip; drag ∝ v²; no artificial speed cap and no yaw clamping — sliding,
+    /// understeer, and oversteer emerge from grip limits (DECISIONS.md).
+    /// Configured from part specs via AssembledVehicle (Building.PartSpecs).
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public sealed class VehicleController : MonoBehaviour
     {
-        [SerializeField, Min(0f)] private float accelerationForce = 15f;   // ~12.5 m/s^2 (~1.3g) on mass 1.2
-        [SerializeField, Min(0f)] private float brakeForce = 20f;          // ~16.7 m/s^2 (~1.7g) — brakes stronger than engine
-        [SerializeField, Min(0f)] private float turnTorque = 3f;           // yaw acceleration at speed (rad/s^2)
-        [SerializeField, Min(0f)] private float maxSpeed = 18f;            // ~65 km/h, kart territory for a 200m course
-        [SerializeField, Min(0f)] private float maxYawRate = 1.5f;         // ~86 deg/s — clamps yaw so the car can't spin out
-        [SerializeField, Min(0f)] private float lateralGrip = 12f;         // strong lateral damping — grip dominates power
+        // Default spec = kart class (PartSpecs). BuildPhaseController
+        // overrides via Configure() as parts are attached.
+        [SerializeField] private float massKg = 177f;
+        [SerializeField] private float powerWatts = 15000f;
+        [SerializeField] private float frictionCoeff = 1.0f;
+        [SerializeField] private float dragCoeff = 0.7f;
+        [SerializeField] private float frontalArea = 0.9f;
+        [SerializeField] private float steerBias = 0.75f;  // rear wheels get less steer demand → mild understeer
+        [SerializeField] private float steerSpeedGain = 8f; // m/s of forward speed to reach full steering authority
 
         private Rigidbody _body;
-        private bool _powered = true; // PrototypeDrive starts drivable; build flow controls this.
+        private bool _powered = true;
+        private readonly List<WheelModel> _wheels = new List<WheelModel>(4);
 
         private void Awake()
         {
             _body = GetComponent<Rigidbody>();
+            _body.mass = massKg;
+            SpawnWheels();
+        }
+
+        /// <summary>Whether the vehicle has a power source (set by the build phase).</summary>
+        public void SetPowered(bool powered) => _powered = powered;
+
+        /// <summary>Applies part-derived numbers to the physics model.</summary>
+        public void Configure(AssembledVehicle spec)
+        {
+            massKg = spec.MassKg;
+            powerWatts = spec.PowerWatts;
+            frictionCoeff = spec.FrictionCoeff;
+            dragCoeff = spec.DragCoeff;
+            frontalArea = spec.FrontalArea;
+            _body.mass = massKg;
         }
 
         /// <summary>
-        /// Whether the vehicle has a power source. The build phase calls this
-        /// as parts are attached/removed (see BuildPhaseController).
-        /// </summary>
-        public void SetPowered(bool powered) => _powered = powered;
-
-        /// <summary>
-        /// Applies player input. Throttle and steer are in [-1, 1];
-        /// negative throttle brakes (or reverses once nearly stopped).
-        /// Without power, throttle is ignored but steering and braking still work.
+        /// Applies player input (throttle, steer ∈ [-1, 1]). Call from
+        /// FixedUpdate (input driver or tests).
         /// </summary>
         public void Drive(float throttle, float steer)
         {
+            Vector3 forward = transform.forward;
+            Vector3 right = transform.right;
             Vector3 velocity = _body.linearVelocity;
-            float forwardSpeed = Vector3.Dot(velocity, transform.forward);
+            float speed = Vector3.Dot(velocity, forward);
+            float speedAbs = Mathf.Abs(speed);
 
-            if (_powered && throttle > 0f && forwardSpeed < maxSpeed)
+            // --- Grip from live wheel loads (weight transfer emerges) ---
+            float rearGrip = 0f;
+            foreach (WheelModel wheel in _wheels)
             {
-                _body.AddForce(transform.forward * (throttle * accelerationForce));
+                rearGrip += frictionCoeff * wheel.NormalLoad;
             }
-            else if (throttle < 0f)
+            rearGrip *= 0.5f; // driven wheels = rear axle share (RWD kart)
+
+            // --- Drive force: power curve, traction-limited ---
+            float drive = _powered && throttle > 0f
+                ? VehiclePhysics.DriveForce(powerWatts, speedAbs, rearGrip) * throttle
+                : 0f;
+
+            // --- Drag ∝ v² at the body ---
+            float drag = VehiclePhysics.DragForce(speedAbs, dragCoeff, frontalArea);
+
+            // --- Per-wheel friction circle: longitudinal + lateral demand ---
+            float steerAmount = steer * Mathf.Clamp01(speedAbs / steerSpeedGain);
+            float forwardForce = drive - drag * Mathf.Sign(speed);
+
+            Vector3 lateralVelocity = Vector3.Project(velocity, right);
+
+            for (int i = 0; i < _wheels.Count; i++)
             {
-                _body.AddForce(-transform.forward * (brakeForce * -throttle));
+                WheelModel wheel = _wheels[i];
+                float load = wheel.NormalLoad;
+                if (load <= 0f)
+                {
+                    continue;
+                }
+
+                float grip = frictionCoeff * load;
+
+                // Longitudinal: drive on rear wheels; brake on all wheels.
+                float longitudinal = throttle < 0f
+                    ? -Mathf.Sign(speed) * grip * -throttle          // brake = grip-limited (ABS-ish)
+                    : (i >= 2 ? forwardForce * 0.5f : 0f);           // rear wheels split the drive
+
+                // Lateral: tire resists sliding (self-aligning) + steer demand (front-biased).
+                Vector3 slideResist = -lateralVelocity.normalized * grip;
+                Vector3 steerForce = forward * steerAmount * grip * (i < 2 ? 1f : steerBias);
+                Vector3 lateral = slideResist + steerForce;
+
+                // Friction circle: cap combined demand at μ × load.
+                float lateralMagnitude = lateral.magnitude;
+                float combined = Mathf.Sqrt(longitudinal * longitudinal + lateralMagnitude * lateralMagnitude);
+                if (combined > grip)
+                {
+                    float scale = grip / combined;
+                    longitudinal *= scale;
+                    lateral *= scale;
+                }
+
+                Vector3 force = forward * longitudinal + lateral;
+                _body.AddForceAtPosition(force, wheel.ContactPoint, ForceMode.Force);
             }
+        }
 
-            // Steering takes effect as the vehicle gains speed.
-            float turn = steer * turnTorque * Mathf.Clamp01(Mathf.Abs(forwardSpeed) / maxSpeed);
-            _body.AddTorque(transform.up * turn, ForceMode.Acceleration);
+        private void SpawnWheels()
+        {
+            // Wheel slot layout matching the prototype vehicle (2×2 rectangle).
+            Vector3[] localPositions =
+            {
+                new Vector3(-1.1f, 0f, 1.4f),
+                new Vector3(1.1f, 0f, 1.4f),
+                new Vector3(-1.1f, 0f, -1.4f),
+                new Vector3(1.1f, 0f, -1.4f),
+            };
 
-            // Clamp yaw rate so the vehicle can't spin out (arcade grip;
-            // real cars self-stabilize via tire slip. This is the stand-in
-            // until real wheel physics lands in a later milestone).
-            Vector3 angularVelocity = _body.angularVelocity;
-            angularVelocity.y = Mathf.Clamp(angularVelocity.y, -maxYawRate, maxYawRate);
-            _body.angularVelocity = angularVelocity;
-
-            // Damp lateral velocity so the vehicle tracks forward (arcade grip).
-            Vector3 lateral = Vector3.Project(velocity, transform.right);
-            _body.AddForce(-lateral * lateralGrip, ForceMode.Acceleration);
+            for (int i = 0; i < localPositions.Length; i++)
+            {
+                var wheelGo = new GameObject("WheelPhysics" + i);
+                wheelGo.transform.SetParent(transform);
+                wheelGo.transform.localPosition = localPositions[i];
+                WheelModel wheel = wheelGo.AddComponent<WheelModel>();
+                wheel.Attach(_body);
+                _wheels.Add(wheel);
+            }
         }
     }
 }

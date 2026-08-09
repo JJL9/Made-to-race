@@ -8,12 +8,14 @@ using UnityEngine.TestTools;
 namespace MadeToRace.Tests.PlayMode
 {
     /// <summary>
-    /// Verifies build-phase consequences (PRD BLD-1/2): a fresh build has no
-    /// power, placing/removing the engine toggles power, and reset restores a
-    /// clean unpowered state.
+    /// Verifies build-phase consequences (PRD BLD-1/2) with part-driven
+    /// physics: a fresh build has no power AND no grip, the engine alone
+    /// cannot move the car (no wheels = no traction), and reset restores
+    /// a clean unbuildable-to-drive state.
     /// </summary>
     public sealed class BuildPhaseTests
     {
+        private GameObject _ground;
         private GameObject _vehicle;
         private Rigidbody _body;
         private BuildPhaseController _build;
@@ -21,9 +23,12 @@ namespace MadeToRace.Tests.PlayMode
         [SetUp]
         public void SetUp()
         {
+            _ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _ground.transform.localScale = new Vector3(100f, 1f, 100f);
+
             _vehicle = new GameObject("Vehicle");
+            _vehicle.transform.position = new Vector3(0f, 2f, 0f);
             _body = _vehicle.AddComponent<Rigidbody>();
-            _body.useGravity = false;
             _body.linearDamping = 0.05f;
             _vehicle.AddComponent<VehicleController>();
             _build = _vehicle.AddComponent<BuildPhaseController>();
@@ -33,33 +38,58 @@ namespace MadeToRace.Tests.PlayMode
         public void TearDown()
         {
             Object.Destroy(_vehicle);
+            Object.Destroy(_ground);
         }
 
         [UnityTest]
-        public IEnumerator FreshBuild_IsUnpowered()
+        public IEnumerator FreshBuild_IsUnpoweredAndGripless()
         {
+            yield return Settle();
             yield return DriveFixedFrames(10);
 
             Assert.That(Mathf.Abs(_body.linearVelocity.z), Is.LessThan(0.01f),
-                "A chassis with no engine must not accelerate.");
+                "A bare chassis must not move: no engine (power) and no wheels (grip).");
         }
 
         [UnityTest]
-        public IEnumerator PlacingEngine_PowersTheVehicle()
+        public IEnumerator EngineWithoutWheels_DoesNotMove()
         {
             Assert.That(_build.TryPlace(VehicleBuild.EngineSlot, PartType.Engine), Is.True);
 
+            yield return Settle();
             yield return DriveFixedFrames(10);
 
-            Assert.That(_body.linearVelocity.z, Is.GreaterThan(1f),
-                "Attaching the engine must make the vehicle drivable.");
+            Assert.That(Mathf.Abs(_body.linearVelocity.z), Is.LessThan(0.01f),
+                "Power with no wheels = no traction — a mechanic would expect no motion.");
         }
 
         [UnityTest]
-        public IEnumerator RemovingEngine_RemovesPower()
+        public IEnumerator EngineAndWheels_DrivesTheVehicle()
         {
             _build.TryPlace(VehicleBuild.EngineSlot, PartType.Engine);
-            yield return DriveFixedFrames(5);
+            foreach (string slot in VehicleBuild.WheelSlots)
+            {
+                _build.TryPlace(slot, PartType.Wheel);
+            }
+
+            yield return Settle();
+            yield return DriveFixedFrames(10);
+
+            Assert.That(_body.linearVelocity.z, Is.GreaterThan(1f),
+                "Engine + wheels must make the vehicle drivable.");
+        }
+
+        [UnityTest]
+        public IEnumerator RemovingEngine_StopsAcceleration()
+        {
+            _build.TryPlace(VehicleBuild.EngineSlot, PartType.Engine);
+            foreach (string slot in VehicleBuild.WheelSlots)
+            {
+                _build.TryPlace(slot, PartType.Wheel);
+            }
+
+            yield return Settle();
+            yield return DriveFixedFrames(30);
 
             Assert.That(_build.TryRemove(VehicleBuild.EngineSlot), Is.True);
             float speedBefore = _body.linearVelocity.z;
@@ -71,7 +101,7 @@ namespace MadeToRace.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ResetBuild_RemovesPower_AndClearsParts()
+        public IEnumerator ResetBuild_RestoresCleanState()
         {
             _build.TryPlace(VehicleBuild.EngineSlot, PartType.Engine);
             foreach (string slot in VehicleBuild.WheelSlots)
@@ -85,9 +115,10 @@ namespace MadeToRace.Tests.PlayMode
             Assert.That(_build.IsRaceReady(), Is.False);
             CollectionAssert.AreEqual(new[] { PartType.Chassis }, _build.Build.Parts);
 
+            yield return Settle();
             yield return DriveFixedFrames(10);
             Assert.That(Mathf.Abs(_body.linearVelocity.z), Is.LessThan(0.01f),
-                "A reset build must be unpowered again.");
+                "A reset build must not move: no power, no grip.");
         }
 
         [Test]
@@ -103,6 +134,15 @@ namespace MadeToRace.Tests.PlayMode
                 _build.TryPlace(slot, PartType.Wheel);
             }
             Assert.That(_build.IsRaceReady(), Is.True);
+        }
+
+        private IEnumerator Settle()
+        {
+            for (int i = 0; i < 30; i++)
+            {
+                yield return null;
+                yield return new WaitForFixedUpdate();
+            }
         }
 
         private IEnumerator DriveFixedFrames(int frames)

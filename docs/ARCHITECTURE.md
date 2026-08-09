@@ -16,7 +16,7 @@ Do not use this file to speculate about architecture that has not been selected.
 - **Language:** C# (IL2CPP for release builds)
 - **Distribution:** Steam (Windows first; Steam Deck support as a goal)
 - **Render pipeline:** URP
-- **Physics:** Unity built-in (PhysX); arcade-first tuning
+- **Physics:** Unity built-in (PhysX); engineer-grade simcade vehicle model (see Vehicle Physics section)
 - **Version control:** Git + Git LFS for large binaries
 
 The Unity-specific structure below is a starting point and should be revisited after the first playable prototype.
@@ -104,8 +104,30 @@ Initial script layout mirrors the MVP development order:
 
 Initial responsibilities, kept small and single-purpose:
 
-- **VehicleController** — reads input, applies forces to the assembled Rigidbody (wheels/power). Owns no race or building rules.
+- **VehicleController** — reads input, drives the assembled vehicle through its four wheel models (raycast suspension + friction-limited contact). Owns no race or building rules.
+- **VehiclePhysics** — pure vehicle math (engine power curve, drag/downforce, traction limits, weight transfer); no UnityEngine dependency (see Vehicle Physics section).
 - **BuildValidator** — determines whether an assembly is race-ready (minimum: chassis + wheels + engine, per MVP).
+
+## Vehicle Physics
+
+**Confirmed 2026-08-09** (see `DECISIONS.md` — Vehicle Physics Complexity)
+
+Engineer-grade simcade: real car relationships, tuned for fun.
+
+- **Part specs drive physics.** Parts carry real-derived numbers (engine kW,
+  tire μ, chassis mass/Cd — kart class). `VehicleAssembly` combines attached
+  parts into an `AssembledVehicle` that configures the controller. Build
+  choices have real consequences (BLD-4).
+- **Per-wheel raycast suspension** (`WheelModel`): spring + damper per wheel.
+  Normal load comes from spring compression, so weight transfer (accel/brake/
+  corner load shift) EMERGES — no lookup tables.
+- **Friction-limited contact (friction circle).** Each wheel's longitudinal +
+  lateral demand is capped at μ × load. Exceed grip → slide; front grip loss =
+  understeer, rear grip loss = oversteer/spin. No yaw clamping.
+- **Engine model.** Drive force = power / speed (kart CVT approximation),
+  traction-capped by driven-wheel grip. Top speed emerges when drive = drag
+  (0.5 ρ Cd A v²). No artificial speed cap.
+- **Aero.** Drag ∝ v²; downforce ∝ v² (Cl = 0 in MVP — future aero parts).
 - **RaceState** — match flow: build phase → countdown → race → results.
 - **FinishDetector** — trigger-based finish-line detection.
 - **Input** — Unity Input System; keyboard/mouse and gamepad supported from the start.
