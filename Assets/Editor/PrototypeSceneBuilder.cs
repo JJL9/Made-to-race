@@ -147,7 +147,7 @@ namespace MadeToRace.Editor
             var rb = root.AddComponent<Rigidbody>();
             rb.mass = 1.2f;
             rb.linearDamping = 0.05f;
-            rb.angularDamping = 0.5f;
+            rb.angularDamping = 1f;
 
             root.AddComponent<VehicleController>();
             root.AddComponent<PlayerInputDriver>();
