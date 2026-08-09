@@ -29,3 +29,85 @@ Use:
 Owner: Unassigned
 Branch: <branch name>
 Status: <status>
+```
+
+## Current Tasks — M0 Prototype
+
+Goal: **Build a basic car → Drive it → Cross a finish line** (see `MVP.md`).
+
+Order follows the confirmed MVP development order. M0-1 requires the scaffold
+PR (`feature/unity-scaffold`) to be merged first; M0-2..M0-7 map to the
+requirements in `docs/PRD.md` (§6.1–§6.4).
+
+### M0-1 — Open the Unity project and verify the baseline
+
+Owner: Unassigned
+Branch:
+Status: Ready
+
+- Open the repo in Unity Hub (Unity 6 LTS) per `docs/UNITY_SETUP.md`.
+- First open generates the remaining ProjectSettings.
+- Verify: no console errors; EditMode tests (`MadeToRace.EditModeTests`) all pass.
+
+### M0-2 — Basic driving and vehicle movement
+
+Owner: Unassigned
+Branch: feature/basic-driving
+Status: Ready
+
+- Wire `VehicleController` to input (keyboard + gamepad) in a test scene.
+- A minimal vehicle (Rigidbody + wheels) accelerates, steers, and brakes.
+
+### M0-3 — Basic vehicle construction
+
+Owner: Unassigned
+Branch: feature/vehicle-builder
+Status: Ready
+
+- Part placement/attachment for the MVP minimum set (chassis, wheels, engine).
+- Building input learnable within the first match (PRD BLD-1..BLD-3).
+
+### M0-4 — Vehicle validation
+
+Owner: Unassigned
+Branch: feature/vehicle-validation
+Status: Ready
+
+- Wire `BuildValidator` into the build flow; invalid builds get clear, fast
+  feedback (PRD BLD-5).
+
+### M0-5 — Simple test course
+
+Owner: Unassigned
+Branch: feature/test-course
+Status: Ready
+
+- Starting area, enough driveable space, finish line (MVP.md; PRD CRS-1).
+
+### M0-6 — Finish detection
+
+Owner: Unassigned
+Branch: feature/finish-detection
+Status: Ready
+
+- `FinishDetector` + `RaceState` wired: crossing the line reports a completion
+  result (PRD RAC-1).
+
+### M0-7 — Reset / retry loop
+
+Owner: Unassigned
+Branch: feature/reset-retry
+Status: Ready
+
+- Fast reset back to a clean build/drive state (< 5s, PRD RAC-2).
+
+### M0-8 — Minimal build-to-race flow
+
+Owner: Unassigned
+Branch:
+Status: Backlog
+
+- The full loop runs end-to-end: build → validate → countdown → drive →
+  finish → reset.
+- M0 success gate: internal playtest answers "is building a vehicle and
+  immediately racing it fun?" (MVP.md success criteria).
