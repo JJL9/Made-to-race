@@ -41,13 +41,15 @@ requirements in `docs/PRD.md` (§6.1–§6.4).
 
 ### M0-1 — Open the Unity project and verify the baseline
 
-Owner: Unassigned
-Branch:
-Status: Ready
+Owner: —
+Status: Done (verified 2026-08-09)
 
-- Open the repo in Unity Hub (Unity 6 LTS) per `docs/UNITY_SETUP.md`.
-- First open generates the remaining ProjectSettings.
-- Verify: no console errors; EditMode tests (`MadeToRace.EditModeTests`) all pass.
+- Opened the project in Unity **6000.0.81f1** (arm64, headless batchmode);
+  generated ProjectSettings and asset `.meta` files are committed.
+- Verification: `MadeToRace.Runtime` + `MadeToRace.EditModeTests` compile
+  with no errors; EditMode suite **4/4 passed** (BuildValidator tests).
+- Note: `-runTests` in batchmode requires running without `-quit` (the
+  editor exits before the deferred test run otherwise).
 
 ### M0-2 — Basic driving and vehicle movement
 
