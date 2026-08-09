@@ -29,18 +29,15 @@ Do not propose replacing an existing system before understanding how it currentl
 
 ## Engine / Platform
 
-**Open Decision — Game Engine / Platform**
+**Confirmed — 2026-08-09**
 
-Do not assume:
+* Engine: Unity 6 LTS
+* Language: C#
+* Distribution: Steam
 
-* a game engine
-* programming language
-* project folder structure
-* physics implementation
-* networking framework
-* deployment platform
+Unity-specific project structure, physics approach, and system boundaries are documented in `docs/ARCHITECTURE.md`. Follow the repository structure and boundaries there instead of inventing new layouts.
 
-until the engine/platform decision has been officially recorded in the repository.
+Networking framework and deployment specifics remain open decisions until multiplayer work begins.
 
 ## Task Ownership and Git Awareness
 
