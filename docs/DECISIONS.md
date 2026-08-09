@@ -121,26 +121,21 @@ The following decisions are currently unresolved.
 
 ### Game Engine / Platform
 
-**Open Decision**
+**Confirmed — 2026-08-09**
 
-The game engine and development platform have not been selected.
+Unity is the selected game engine. Development targets **Unity 6 LTS** (the current 6.x LTS at project setup; the exact patch version is pinned when the Unity project is created and recorded in `docs/ARCHITECTURE.md`).
 
-Do not assume engine-specific:
+Rationale: mature physics and vehicle tooling, a well-supported Steam integration path (Steamworks.NET), broad platform coverage including Steam Deck, and a documentation/tooling ecosystem well suited to a three-person team.
 
-- folder structure
-- programming language
-- physics system
-- networking framework
-- tooling
-- deployment process
-
-until this decision is confirmed.
+Engine-specific structure, physics approach, and system boundaries are documented in `docs/ARCHITECTURE.md`.
 
 ### Target Platform(s)
 
-**Open Decision**
+**Confirmed — 2026-08-09**
 
-The initial target platform or platforms have not been finalized.
+Steam is the initial target platform (Windows first, with Steam Deck support as a stated goal). Store page, Steamworks, and publishing requirements are tracked in `docs/PRD.md` (§5).
+
+Other platforms are not ruled out but are not part of the current plan.
 
 ### Camera
 

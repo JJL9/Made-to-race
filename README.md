@@ -30,14 +30,14 @@ Work that does not help prove this core loop should generally be deferred until 
 
 Current priorities:
 
-1. Establish repository documentation and team workflow.
-2. Choose the game engine/platform.
+1. Establish repository documentation and team workflow. — **Done.**
+2. Choose the game engine/platform. — **Done: Unity 6 LTS + Steam (2026-08-09).**
 3. Adapt the repository to the selected engine.
 4. Build the first playable vertical slice.
 
-**Open Decision — Game Engine / Platform**
+**Engine / Platform — Confirmed (2026-08-09)**
 
-The game engine and target platform have not yet been finalized. Do not assume an engine-specific project structure, architecture, networking model, or implementation approach until this decision is recorded.
+Development uses **Unity 6 LTS**, publishing to **Steam**. Engine-specific structure and conventions are documented in [Architecture](docs/ARCHITECTURE.md); the product plan is in [PRD](docs/PRD.md).
 
 ## Project Source of Truth
 
@@ -69,6 +69,7 @@ Project knowledge is organized in the following documents:
 
 * [CODEX.md](CODEX.md) — Instructions and working rules for ChatGPT/Codex development sessions.
 * [Game Overview](docs/GAME_OVERVIEW.md) — High-level game concept, principles, and intended player experience.
+* [PRD](docs/PRD.md) — Product requirements: vision, features, milestones, and Steam platform plan.
 * [MVP](docs/MVP.md) — Current prototype scope and explicit non-goals.
 * [Team Workflow](docs/TEAM_WORKFLOW.md) — Git, branching, ownership, pull request, and collaboration practices.
 * [Decisions](docs/DECISIONS.md) — Confirmed project decisions and important open decisions.

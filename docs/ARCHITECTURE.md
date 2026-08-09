@@ -10,22 +10,16 @@ Do not use this file to speculate about architecture that has not been selected.
 
 ## Current Status
 
-**Open Decision — Game Engine / Platform**
+**Confirmed — 2026-08-09**
 
-The game engine and development platform have not yet been selected.
+- **Engine:** Unity 6 LTS (exact 6.x patch pinned at project creation)
+- **Language:** C# (IL2CPP for release builds)
+- **Distribution:** Steam (Windows first; Steam Deck support as a goal)
+- **Render pipeline:** URP
+- **Physics:** Unity built-in (PhysX); arcade-first tuning
+- **Version control:** Git + Git LFS for large binaries
 
-Because of that, the following are intentionally not defined yet:
-
-- engine-specific folder structure
-- programming language
-- scene or object structure
-- physics implementation
-- networking framework
-- serialization approach
-- build/deployment process
-- platform-specific systems
-
-These should be documented only after the relevant decisions are made.
+The Unity-specific structure below is a starting point and should be revisited after the first playable prototype.
 
 ## Architectural Principles
 
@@ -87,18 +81,49 @@ When a major architectural decision becomes accepted:
 
 Do not silently establish major architecture through implementation alone.
 
-## Next Architecture Step
+## Unity Repository Structure
 
-After the game engine/platform is selected, this document should be expanded to cover:
+The Unity project lives at the repository root:
 
-- repository structure
-- major gameplay systems
-- system responsibilities
-- dependencies and data flow
-- vehicle simulation boundaries
-- build-to-race flow
-- multiplayer boundaries
-- persistent versus temporary state
-- testing approach
+- `Assets/Scripts/` — gameplay code, organized by system
+- `Assets/Scenes/` — scenes (test course, prototype)
+- `Assets/Prefabs/` — vehicle parts, track prefabs
+- `Assets/Art/`, `Assets/Audio/` — binaries (tracked via Git LFS)
+- `Packages/` — Unity package manifest
+- `ProjectSettings/` — Unity project settings
+- `docs/` — project documentation (existing layout, unchanged)
 
-Until then, keep this document engine-agnostic.
+Initial script layout mirrors the MVP development order:
+
+- `Scripts/Vehicle/` — vehicle movement; physics-driven controller
+- `Scripts/Building/` — part placement, attachment, validation
+- `Scripts/Race/` — race state, checkpoints, finish detection, reset
+- `Scripts/UI/` — HUD, build interface (added when UI work starts)
+
+## System Responsibilities
+
+Initial responsibilities, kept small and single-purpose:
+
+- **VehicleController** — reads input, applies forces to the assembled Rigidbody (wheels/power). Owns no race or building rules.
+- **BuildValidator** — determines whether an assembly is race-ready (minimum: chassis + wheels + engine, per MVP).
+- **RaceState** — match flow: build phase → countdown → race → results.
+- **FinishDetector** — trigger-based finish-line detection.
+- **Input** — Unity Input System; keyboard/mouse and gamepad supported from the start.
+
+## Data Flow: Build to Race
+
+1. Player places parts (part data from a ScriptableObject part catalog).
+2. BuildValidator checks the assembly; invalid builds show clear feedback.
+3. On validation, the vehicle is driven by a dynamic Rigidbody.
+4. RaceState runs the countdown; VehicleController drives the Rigidbody.
+5. FinishDetector reports the crossing; RaceState shows results and resets.
+
+## Persistent vs Temporary State
+
+- **Temporary:** build assembly, race state — in-memory scene state.
+- **Persistent (later):** cosmetics, unlocks, settings — Steam Cloud (planned for P3; not part of the prototype).
+
+## Testing Approach
+
+- Unity Test Framework: EditMode tests for pure logic (validation rules, race state transitions); PlayMode tests for vehicle movement.
+- Manual playtest checklist for the build → drive → finish loop.
