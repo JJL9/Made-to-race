@@ -16,6 +16,7 @@ namespace MadeToRace.Vehicle
         [SerializeField, Min(0f)] private float lateralGrip = 6f;
 
         private Rigidbody _body;
+        private bool _powered = true; // PrototypeDrive starts drivable; build flow controls this.
 
         private void Awake()
         {
@@ -23,15 +24,22 @@ namespace MadeToRace.Vehicle
         }
 
         /// <summary>
+        /// Whether the vehicle has a power source. The build phase calls this
+        /// as parts are attached/removed (see BuildPhaseController).
+        /// </summary>
+        public void SetPowered(bool powered) => _powered = powered;
+
+        /// <summary>
         /// Applies player input. Throttle and steer are in [-1, 1];
         /// negative throttle brakes (or reverses once nearly stopped).
+        /// Without power, throttle is ignored but steering and braking still work.
         /// </summary>
         public void Drive(float throttle, float steer)
         {
             Vector3 velocity = _body.linearVelocity;
             float forwardSpeed = Vector3.Dot(velocity, transform.forward);
 
-            if (throttle > 0f && forwardSpeed < maxSpeed)
+            if (_powered && throttle > 0f && forwardSpeed < maxSpeed)
             {
                 _body.AddForce(transform.forward * (throttle * accelerationForce));
             }
