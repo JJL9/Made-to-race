@@ -115,6 +115,14 @@ A minimum functional vehicle may consist of:
 
 The exact part rules and attachment system are unresolved.
 
+### Weather & Track Conditions
+
+**Proposed**
+
+Weather conditions as course modifiers (Rain, Windy, Cold, Clear) are a candidate direction for multiplying build tradeoffs without new course geometry. Conditions would be announced during course inspection, be session-consistent, and each require a visible effect, a build counter, and a skill counter.
+
+Not part of the MVP. Design direction recorded in `docs/GAME_OVERVIEW.md`; requirements in `docs/PRD.md` (§6.9).
+
 ## Open Decisions
 
 The following decisions are currently unresolved.

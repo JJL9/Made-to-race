@@ -74,6 +74,28 @@ Different layouts and obstacles should make different vehicle characteristics us
 
 The exact course types and launch map count are not finalized.
 
+## Weather & Track Conditions
+
+**Proposed**
+
+Weather conditions are a strong candidate for multiplying course variety: the same course under different conditions becomes a different build problem, with no new geometry required.
+
+Design direction under discussion:
+
+- Conditions are announced during course inspection (a race-day briefing), before the build phase — players always build with full information.
+- One dominant condition per match initially: **Clear, Rain, Windy, or Cold**. Conditions are session-consistent; no mid-race surprises in the default mode.
+- Every condition should have a visible effect, a build counter, and a skill counter:
+
+| Condition | Build response | Skill response |
+|---|---|---|
+| Rain | rain tires (wet grip) vs slicks (dry grip) | line choice around puddles, aquaplaning |
+| Windy | aero parts (stability vs weight/drag tradeoff) | reading gusts via visual telegraphs |
+| Cold | tire compound (soft grips cold but overheats; hard fast when warm, risky lap 1) | managing tire warmup on lap 1 |
+| Clear | baseline — speed/agility builds | pure racing line |
+
+- Weather is **not** part of the MVP. It is a candidate for the first P1/P2 systems because it is mostly parameter modulation (grip multipliers, wind force, visuals) on top of the physics already being built.
+- Long term, community-created maps could ship with condition presets (**Future Idea**).
+
 ## Multiplayer
 
 **Confirmed**
