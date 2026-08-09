@@ -53,12 +53,14 @@ Status: Done (verified 2026-08-09)
 
 ### M0-2 — Basic driving and vehicle movement
 
-Owner: Unassigned
+Owner: —
 Branch: feature/basic-driving
-Status: Ready
+Status: Review (PR pending)
 
-- Wire `VehicleController` to input (keyboard + gamepad) in a test scene.
-- A minimal vehicle (Rigidbody + wheels) accelerates, steers, and brakes.
+- `VehicleController` v2: throttle/brake/steer + lateral grip.
+- `PlayerInputDriver`: WASD/arrows + gamepad → `Drive()`.
+- `CameraFollow` + generated prototype scene (`Assets/Scenes/PrototypeDrive.unity`).
+- Verified: EditMode 4/4, PlayMode 5/5 (movement physics + keyboard input).
 
 ### M0-3 — Basic vehicle construction
 

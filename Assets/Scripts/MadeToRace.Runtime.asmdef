@@ -1,7 +1,9 @@
 {
     "name": "MadeToRace.Runtime",
     "rootNamespace": "MadeToRace",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
