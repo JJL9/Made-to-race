@@ -26,7 +26,7 @@ namespace MadeToRace.Building
         private void Awake()
         {
             _vehicle = GetComponent<VehicleController>();
-            ApplyPower(); // a fresh build is unpowered until an engine is attached
+            ApplyBuildToVehicle(); // fresh build: chassis only — no power, no grip
         }
 
         public bool TryPlace(string slotId, PartType part)
@@ -34,7 +34,7 @@ namespace MadeToRace.Building
             if (!_build.TryPlace(slotId, part)) return false;
 
             SpawnPartView(slotId, part);
-            ApplyPower();
+            ApplyBuildToVehicle();
             return true;
         }
 
@@ -43,7 +43,7 @@ namespace MadeToRace.Building
             if (!_build.TryRemove(slotId)) return false;
 
             DestroyPartView(slotId);
-            ApplyPower();
+            ApplyBuildToVehicle();
             return true;
         }
 
@@ -56,12 +56,35 @@ namespace MadeToRace.Building
                 Destroy(view);
             }
             _partViews.Clear();
-            ApplyPower();
+            ApplyBuildToVehicle();
         }
 
         public bool IsRaceReady() => _build.IsRaceReady(_validator);
 
-        private void ApplyPower() => _vehicle.SetPowered(_build.Parts.Contains(PartType.Engine));
+        /// <summary>
+        /// Pushes part-derived numbers into the vehicle physics: power from the
+        /// engine, grip from wheels (wheel count scales traction — a car with
+        /// fewer wheels has less grip, BLD-4), mass from chassis + parts.
+        /// </summary>
+        private void ApplyBuildToVehicle()
+        {
+            int wheelCount = _build.Parts.Count(part => part == PartType.Wheel);
+            bool hasEngine = _build.Parts.Contains(PartType.Engine);
+
+            ChassisSpec chassis = PartSpecs.KartChassis;
+            EngineSpec engine = PartSpecs.KartEngine;
+            WheelSpec wheel = PartSpecs.StreetWheel;
+
+            AssembledVehicle spec = VehicleAssembly.Combine(
+                chassis.MassKg, chassis.DragCoeff, chassis.FrontalArea,
+                chassis.CenterHeight, chassis.Wheelbase, chassis.TrackWidth, chassis.FrontWeightRatio,
+                hasEngine ? engine.MassKg : 0f,
+                hasEngine ? engine.PowerWatts : 0f,
+                wheel.FrictionCoeff * (wheelCount / 4f), // grip scales with wheel count
+                wheelCount);
+
+            _vehicle.Configure(spec);
+        }
 
         private void SpawnPartView(string slotId, PartType part)
         {
@@ -84,11 +107,17 @@ namespace MadeToRace.Building
                 // Mirror the prototype vehicle's wheel layout.
                 bool front = slotId.EndsWith("fl") || slotId.EndsWith("fr");
                 bool left = slotId.EndsWith("fl") || slotId.EndsWith("rl");
-                view.transform.localPosition = new Vector3(left ? -1.1f : 1.1f, -0.45f, front ? 1.4f : -1.4f);
+                view.transform.localPosition = new Vector3(left ? -1.1f : 1.1f, -0.05f, front ? 1.4f : -1.4f);
                 view.transform.localScale = new Vector3(0.7f, 0.35f, 0.7f);
                 view.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
                 SetColor(view, new Color(0.15f, 0.15f, 0.15f));
             }
+
+            // Part views are visual only — colliders on them overlap the body
+            // and ground (engine sits inside the body volume, wheels below the
+            // ground surface) and would fire depenetration forces. The raycast
+            // WheelModels + body carry all contact.
+            Object.Destroy(view.GetComponent<Collider>());
 
             _partViews[slotId] = view;
         }

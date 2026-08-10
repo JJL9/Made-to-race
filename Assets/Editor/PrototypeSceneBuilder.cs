@@ -32,7 +32,7 @@ namespace MadeToRace.Editor
             AddGroundAndLight();
 
             var vehicle = CreatePrototypeVehicle();
-            vehicle.transform.position = new Vector3(0f, 1f, 0f);
+            vehicle.transform.position = new Vector3(0f, 1.2f, 0f); // rest height ≈ 1.09; spawn above so it settles down gently
 
             AddFollowCamera(vehicle);
 
@@ -48,7 +48,7 @@ namespace MadeToRace.Editor
             AddGroundAndLight();
 
             var vehicle = CreateBuildableVehicle();
-            vehicle.transform.position = new Vector3(0f, 1f, 0f);
+            vehicle.transform.position = new Vector3(0f, 1.2f, 0f); // rest height ≈ 1.09; spawn above so it settles down gently
 
             AddFollowCamera(vehicle);
             AddBuildHintText();
@@ -88,7 +88,7 @@ namespace MadeToRace.Editor
             var textGo = new GameObject("Hint Text");
             textGo.transform.SetParent(canvasGo.transform);
             var text = textGo.AddComponent<UnityEngine.UI.Text>();
-            text.text = "BUILD:  1 = wheels   2 = engine   3 = reset   |   then drive with WASD";
+            text.text = "BUILD:  1 = wheels   2 = engine (wheels first!)   3 = reset   |   then drive with WASD";
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = 24;
             text.color = Color.white;
@@ -126,8 +126,8 @@ namespace MadeToRace.Editor
             body.transform.SetParent(root.transform);
             body.transform.localScale = new Vector3(2f, 0.8f, 4f);
 
-            // Wheels are visual-only in the prototype; the body collider is
-            // what contacts the ground (physics is body-driven, PHY-1..4).
+            // Wheels are visual-only in the prototype; the raycast WheelModels
+            // (spawned by VehicleController) carry the suspension and grip.
             for (int i = 0; i < 4; i++)
             {
                 var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -135,7 +135,7 @@ namespace MadeToRace.Editor
                 wheel.transform.SetParent(root.transform);
                 float side = (i % 2 == 0) ? -1f : 1f;
                 float front = (i < 2) ? 1.4f : -1.4f;
-                wheel.transform.localPosition = new Vector3(side * 1.1f, -0.45f, front);
+                wheel.transform.localPosition = new Vector3(side * 1.1f, -0.05f, front);
                 wheel.transform.localScale = new Vector3(0.7f, 0.35f, 0.7f);
                 wheel.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
                 Object.DestroyImmediate(wheel.GetComponent<Collider>());

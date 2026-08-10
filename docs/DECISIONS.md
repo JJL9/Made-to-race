@@ -171,11 +171,31 @@ The rules that determine whether a constructed vehicle is valid and race-ready h
 
 ### Vehicle Physics Complexity
 
-**Open Decision**
+**Confirmed 2026-08-09** — engineer-grade (simcade)
 
-The desired balance between arcade physics and simulation complexity has not been finalized.
+Physics and mechanics model real car systems, as if a car mechanic and
+design engineer built the game (owner decision 2026-08-09):
 
-Fun and readable gameplay should take priority over strict realism.
+- **Engine:** real power curve; force falls off with speed; top speed
+  EMERGES from power vs drag — no artificial speed cap.
+- **Tires:** grip is a friction limit (μ × tire load, friction circle).
+  Sliding, understeer, and oversteer EMERGE from exceeding grip — no yaw
+  clamping or spin-prevention cheats.
+- **Weight:** power-to-weight drives acceleration; weight transfer (load
+  shift under accel/brake/corner) makes weight matter in corners.
+- **Aero:** drag and downforce ∝ speed² (downforce Cl = 0 in MVP).
+- **Parts** carry real-derived specs (engine kW, tire μ, chassis mass/Cd)
+  that feed the physics — build choices have real consequences (BLD-4).
+- **Suspension:** per-wheel raycast springs (rest length, stiffness,
+  damper) — normal load and weight transfer come from spring compression.
+
+Fun and readable gameplay still takes priority over strict realism
+(simcade, Forza/GT territory — not a full sim). Reference data: kart-class
+vehicle (~177 kg with driver, 15 kW ≈ 20 hp, μ ≈ 1.0 dry asphalt,
+Cd ≈ 0.7, A ≈ 0.9 m²) → ~120 km/h top speed, ~0.7g launch.
+
+Supersedes: the arcade tuning pass (commit 2161275) and the body-driven
+force model from M0-2 (yaw-rate clamping removed as a stability crutch).
 
 ### Damage / Destruction
 
