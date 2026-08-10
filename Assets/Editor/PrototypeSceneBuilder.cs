@@ -32,7 +32,7 @@ namespace MadeToRace.Editor
             AddGroundAndLight();
 
             var vehicle = CreatePrototypeVehicle();
-            vehicle.transform.position = new Vector3(0f, 1f, 0f);
+            vehicle.transform.position = new Vector3(0f, 1.2f, 0f); // rest height ≈ 1.09; spawn above so it settles down gently
 
             AddFollowCamera(vehicle);
 
@@ -48,7 +48,7 @@ namespace MadeToRace.Editor
             AddGroundAndLight();
 
             var vehicle = CreateBuildableVehicle();
-            vehicle.transform.position = new Vector3(0f, 1f, 0f);
+            vehicle.transform.position = new Vector3(0f, 1.2f, 0f); // rest height ≈ 1.09; spawn above so it settles down gently
 
             AddFollowCamera(vehicle);
             AddBuildHintText();

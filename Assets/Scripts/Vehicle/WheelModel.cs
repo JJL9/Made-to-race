@@ -62,7 +62,10 @@ namespace MadeToRace.Vehicle
                 // Spring: compression beyond rest; damper: opposes the compression
                 // rate (F = k·c + b·ċ — adds force on the downswing, subtracts on
                 // the upswing; a flipped sign pumps energy into the bounce).
-                float compression = restLength - (hit.distance - wheelRadius);
+                // Compression is clamped to the spring's own travel: a wheel
+                // spawned embedded in the ground must not turn the suspension
+                // into a catapult (this launched the prototype scene at spawn).
+                float compression = Mathf.Clamp(restLength - (hit.distance - wheelRadius), 0f, restLength);
                 float compressionSpeed = Vector3.Dot(_body.GetPointVelocity(origin), -transform.up);
                 float springForce = springStiffness * compression;
                 float dampingForce = damper * compressionSpeed;
