@@ -17,40 +17,25 @@ Product vision & requirements: [`PRD.md`](PRD.md). Decisions: [`DECISIONS.md`](D
 
 ## ✅ Done (merged to main)
 
-- [x] **M0-1 — Unity project scaffold + test harness** — commit `3259a98`.
-  EditMode **4/4** green against the real engine (`-runTests`, no `-quit`).
 - [x] **Foundations** — PRs #1–#5 merged: PRD (requirements M0–M5), engine
   decision (Unity 6 LTS + Steam), scaffold, weather design (Proposed), TASKS
   breakdown. Unity **6000.0.81f1** installed (arm64) + Windows Mono module.
+- [x] **M0-1 — Unity project scaffold + test harness** — commit `3259a98`.
+  EditMode **4/4** green against the real engine (`-runTests`, no `-quit`).
+- [x] **M0-2 — Basic driving** — PR #6 merged (squash `5efdd61`): VehicleController
+  v2 + PlayerInputDriver (WASD/gamepad) + CameraFollow + PrototypeDrive scene.
+  EditMode **4/4**, PlayMode **5/5**.
+- [x] **M0-3 — Basic construction** — PR #7 merged (squash `cfe95d0`): VehicleBuild +
+  BuildPhaseController (keys 1/2/3 = wheels/engine/reset) + PrototypeBuild scene.
+  EditMode **13/13**, PlayMode **10/10**.
+- [x] **M0-4 — Engineer-grade vehicle physics** — PR #8 merged (squash `b399e14`):
+  pure physics core, raycast suspension, friction circle, PartSpecs-driven build,
+  kart CoG, world-frame suspension. EditMode **31/31**, PlayMode **9/9**, playtest
+  approved. **Main is now playable end-to-end: build car → drive it.** 🎉
 
 ## 🔎 In review (PRs open — unmerged, stacked)
 
-### M0-2 — Basic driving — [PR #6](https://github.com/JJL9/Made-to-race/pull/6) `feature/basic-driving`
-- [x] VehicleController v2 + PlayerInputDriver (WASD/gamepad) + CameraFollow
-- [x] PrototypeDrive scene generated headlessly
-- [x] EditMode **4/4**, PlayMode **5/5**
-- [ ] **Reviewed & merged by a brother** ← *needed: one approval + merge*
-
-### M0-3 — Basic construction — [PR #7](https://github.com/JJL9/Made-to-race/pull/7) `feature/vehicle-builder`
-- [x] VehicleBuild (pure build state) + BuildPhaseController (keys 1/2/3 = wheels/engine/reset)
-- [x] Build consequences: engine gates power; race-ready = chassis + wheels + engine
-- [x] PrototypeBuild scene generated headlessly
-- [x] EditMode **13/13**, PlayMode **10/10**
-- [ ] **Reviewed & merged by a brother** ← *needed: one approval + merge*
-
-### M0-4 — Engineer-grade vehicle physics — [PR #8](https://github.com/JJL9/Made-to-race/pull/8) `feature/vehicle-physics`
-- [x] Decision recorded **Confirmed** in DECISIONS.md (mechanic/engineer-grade, simcade)
-- [x] VehiclePhysics pure core (power curve, drag/downforce ∝ v², traction, weight transfer) — dotnet **13/13**
-- [x] WheelModel raycast suspension (spring + damper, weight transfer emerges)
-- [x] VehicleController v3 friction circle — no speed cap, no yaw clamp; slide/oversteer emerge
-- [x] PartSpecs (kart data: 15 kW, μ 1.0, Cd 0.7, 177 kg) drive the build (BLD-4: no wheels = no traction)
-- [x] Input mapping extracted to pure `ComputeInput` (InputTestFixture corrupts Input System in batchmode)
-- [x] EditMode **31/31**, PlayMode **9/9**, scenes regenerated
-- [x] **Flip-on-spawn fix** — scene spawn height was below suspension rest (spring catapult); now spawns at 1.2, compression travel clamped
-- [x] **Backflip-on-launch fix** — Rigidbody CoM was the collider center (~1.09 m up, 3× lever on contact forces); now at the PartSpecs kart CoG (0.35 m, 45/55 F/R) — launch is a catchable wheelie, not a backflip
-- [x] **Suspension stability regression fixed** — test chassis lacked a collider → PhysX default inertia ≈ 1 (150× too small) amplified the weight-split moment into a somersault; suspension now world-frame (rays/forces along the ground normal at the contact patch — no horizontal creep)
-- [x] **Playtest verdict: good** — suites re-verified fresh (editor closed): EditMode **31/31**, PlayMode **9/9**
-- [ ] **Reviewed & merged by a brother** ← *needed: one approval + merge*
+*(none — all M0-2/M0-3/M0-4 PRs merged; next work lands via new PRs)*
 
 ## 🚧 In progress
 
