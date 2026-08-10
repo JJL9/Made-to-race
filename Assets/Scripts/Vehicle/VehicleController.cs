@@ -32,6 +32,15 @@ namespace MadeToRace.Vehicle
         {
             _body = GetComponent<Rigidbody>();
             _body.mass = massKg;
+            // Kart CoG: ~0.35 m above the ground at rest ride height (rest root
+            // y ≈ 1.09 → CoM local y ≈ 0.35 − 1.09 ≈ −0.74, rounded −0.75),
+            // 45/55 front/rear weight split → 0.14 m behind the body center
+            // (PartSpecs). The collider-derived default CoM sits at the visual
+            // body center ~1.09 m up — a 3× lever on every contact force: launch
+            // torque (1700 N × 1.09 m ≈ 1870 N·m) backflips the car on throttle
+            // instead of producing a catchable wheelie, and cornering rolls it
+            // over. The low CoM is what makes the kart stable (and wheelie-able).
+            _body.centerOfMass = new Vector3(0f, -0.75f, -0.14f);
             SpawnWheels();
         }
 
