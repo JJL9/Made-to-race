@@ -40,11 +40,16 @@ namespace MadeToRace.Vehicle
 
             Vector3 origin = transform.position;
 
-            // Raycast the suspension, skipping the vehicle's own colliders
-            // (body cube, part views) — only external surfaces load the tire.
+            // Raycast the suspension along the GROUND NORMAL (world down), not
+            // the body axis: the tire's support force acts perpendicular to the
+            // road. Body-axis rays/forces on a pitched chassis resolve into a
+            // horizontal creep (the 45/55 stance's 0.45° tilt pushed a
+            // chassis-only build at ~0.05 m/s) and feed tilt amplification.
+            // Skipping the vehicle's own colliders (body cube, part views) —
+            // only external surfaces load the tire.
             RaycastHit hit = default;
             bool grounded = false;
-            foreach (RaycastHit candidate in Physics.RaycastAll(origin, -transform.up, restLength + wheelRadius))
+            foreach (RaycastHit candidate in Physics.RaycastAll(origin, Vector3.down, restLength + wheelRadius))
             {
                 if (candidate.collider.transform.IsChildOf(_body.transform))
                 {
@@ -66,12 +71,20 @@ namespace MadeToRace.Vehicle
                 // spawned embedded in the ground must not turn the suspension
                 // into a catapult (this launched the prototype scene at spawn).
                 float compression = Mathf.Clamp(restLength - (hit.distance - wheelRadius), 0f, restLength);
-                float compressionSpeed = Vector3.Dot(_body.GetPointVelocity(origin), -transform.up);
+                float compressionSpeed = Vector3.Dot(_body.GetPointVelocity(origin), Vector3.down);
                 float springForce = springStiffness * compression;
                 float dampingForce = damper * compressionSpeed;
                 float total = Mathf.Max(0f, springForce + dampingForce);
 
-                _body.AddForceAtPosition(transform.up * total, origin, ForceMode.Force);
+                // Apply the ground reaction AT THE CONTACT PATCH, not the wheel
+                // origin: the tire's support force acts where the tire meets the
+                // road. With the CoM at kart CoG height (below the spring attach
+                // plane), applying at the origin makes the chassis an inverted
+                // pendulum — a landing bounce tips it and the springs amplify the
+                // tilt until it flops and skitters (chassis-only builds hit
+                // ~11 m/s with no input). At the contact patch the support is
+                // below the CoM → restoring → stable at any CoM height.
+                _body.AddForceAtPosition(Vector3.up * total, hit.point, ForceMode.Force);
                 _normalLoad = total;
             }
             else

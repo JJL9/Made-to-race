@@ -30,6 +30,16 @@ namespace MadeToRace.Tests.PlayMode
             _vehicle.transform.position = new Vector3(0f, 2f, 0f);
             _body = _vehicle.AddComponent<Rigidbody>();
             _body.linearDamping = 0.05f;
+
+            // Body cube — same as the real prototype vehicle. Without a collider
+            // the Rigidbody gets the colliderless DEFAULT inertia tensor (~1),
+            // and the CoM's 45/55 rear weight split becomes a 1000 rad/s² pitch
+            // explosion instead of a 0.45° static nose-up stance.
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "Body";
+            body.transform.SetParent(_vehicle.transform, false);
+            body.transform.localScale = new Vector3(2f, 1f, 4f);
+
             _vehicle.AddComponent<VehicleController>();
             _build = _vehicle.AddComponent<BuildPhaseController>();
         }
@@ -73,7 +83,7 @@ namespace MadeToRace.Tests.PlayMode
             }
 
             yield return Settle();
-            yield return DriveFixedFrames(10);
+            yield return DriveFixedFrames(15); // full launch ramp: wheelie + grip build
 
             Assert.That(_body.linearVelocity.z, Is.GreaterThan(1f),
                 "Engine + wheels must make the vehicle drivable.");
