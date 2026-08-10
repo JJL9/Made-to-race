@@ -3,15 +3,17 @@ using UnityEngine;
 namespace MadeToRace.Vehicle
 {
     /// <summary>
-    /// Drives the assembled vehicle: reads input and applies forces to the
+    /// Drives the assembled vehicle: applies throttle/steering forces to the
     /// vehicle's Rigidbody. Owns no building or race rules (see docs/ARCHITECTURE.md).
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public sealed class VehicleController : MonoBehaviour
     {
         [SerializeField, Min(0f)] private float accelerationForce = 1500f;
+        [SerializeField, Min(0f)] private float brakeForce = 2200f;
         [SerializeField, Min(0f)] private float turnTorque = 8f;
         [SerializeField, Min(0f)] private float maxSpeed = 30f;
+        [SerializeField, Min(0f)] private float lateralGrip = 6f;
 
         private Rigidbody _body;
 
@@ -21,22 +23,30 @@ namespace MadeToRace.Vehicle
         }
 
         /// <summary>
-        /// Applies player input to the vehicle. Throttle and steer are in
-        /// the range [-1, 1]. Starting stub — tuned during the P0 prototype.
+        /// Applies player input. Throttle and steer are in [-1, 1];
+        /// negative throttle brakes (or reverses once nearly stopped).
         /// </summary>
         public void Drive(float throttle, float steer)
         {
             Vector3 velocity = _body.linearVelocity;
             float forwardSpeed = Vector3.Dot(velocity, transform.forward);
 
-            if (forwardSpeed < maxSpeed)
+            if (throttle > 0f && forwardSpeed < maxSpeed)
             {
                 _body.AddForce(transform.forward * (throttle * accelerationForce));
+            }
+            else if (throttle < 0f)
+            {
+                _body.AddForce(-transform.forward * (brakeForce * -throttle));
             }
 
             // Steering takes effect as the vehicle gains speed.
             float turn = steer * turnTorque * Mathf.Clamp01(Mathf.Abs(forwardSpeed) / maxSpeed);
             _body.AddTorque(transform.up * turn, ForceMode.Acceleration);
+
+            // Damp lateral velocity so the vehicle tracks forward (arcade grip).
+            Vector3 lateral = Vector3.Project(velocity, transform.right);
+            _body.AddForce(-lateral * lateralGrip, ForceMode.Acceleration);
         }
     }
 }
