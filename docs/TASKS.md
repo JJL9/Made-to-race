@@ -64,12 +64,17 @@ Status: Review (PR pending)
 
 ### M0-3 — Basic vehicle construction
 
-Owner: Unassigned
+Owner: —
 Branch: feature/vehicle-builder
-Status: Ready
+Status: Review (PR pending)
 
-- Part placement/attachment for the MVP minimum set (chassis, wheels, engine).
-- Building input learnable within the first match (PRD BLD-1..BLD-3).
+- `VehicleBuild` (pure): chassis base + engine/wheel slots, place/remove/
+  reset, race-readiness via `BuildValidator`.
+- `BuildPhaseController`: visual part attachment + build consequences
+  (engine required for power — PRD BLD-1).
+- `DebugBuildInput` (prototype): 1 = wheels, 2 = engine, 3 = reset
+  (PRD BLD-3). `PrototypeBuild` scene generated headlessly.
+- Verified: EditMode 13/13, PlayMode 10/10.
 
 ### M0-4 — Vehicle validation
 
