@@ -47,13 +47,16 @@ Product vision & requirements: [`PRD.md`](PRD.md). Decisions: [`DECISIONS.md`](D
 - [x] Input mapping extracted to pure `ComputeInput` (InputTestFixture corrupts Input System in batchmode)
 - [x] EditMode **31/31**, PlayMode **9/9**, scenes regenerated
 - [x] **Flip-on-spawn fix** — scene spawn height was below suspension rest (spring catapult); now spawns at 1.2, compression travel clamped
+- [x] **Backflip-on-launch fix** — Rigidbody CoM was the collider center (~1.09 m up, 3× lever on contact forces); now at the PartSpecs kart CoG (0.35 m, 45/55 F/R) — launch is a catchable wheelie, not a backflip
+- [x] **Suspension stability regression fixed** — test chassis lacked a collider → PhysX default inertia ≈ 1 (150× too small) amplified the weight-split moment into a somersault; suspension now world-frame (rays/forces along the ground normal at the contact patch — no horizontal creep)
+- [x] **Playtest verdict: good** — suites re-verified fresh (editor closed): EditMode **31/31**, PlayMode **9/9**
 - [ ] **Reviewed & merged by a brother** ← *needed: one approval + merge*
 
 ## 🚧 In progress
 
-- [ ] **Playtest feedback pass** — *claimed: user* — after the flip fix: does the
-      kart feel right? (launch dig, top-end taper, braking, cornering grip,
-      wheelspin). Open items become tasks below.
+- [x] **Playtest feedback pass** — *claimed: user* — verdict: **good**. Launch wheelie
+      is catchable, top end tapers, braking grip-limited, slides controllable.
+      Follow-ups (crash/rollover behavior, suspension feel pass) are queued below.
 
 ## 📋 Up next (claimable — pick one, put your name on it)
 
