@@ -32,8 +32,10 @@ namespace MadeToRace.Tests.PlayMode
             _controller = _vehicle.AddComponent<VehicleController>();
 
             // A body collider (child) so the vehicle can't tunnel through the ground.
+            // worldPositionStays=false: the cube must become a centered child of the
+            // root — keeping its world position would wedge it into the ground.
             var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            body.transform.SetParent(_vehicle.transform);
+            body.transform.SetParent(_vehicle.transform, false);
             body.transform.localScale = new Vector3(2f, 1f, 4f);
         }
 

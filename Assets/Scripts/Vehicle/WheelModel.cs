@@ -13,7 +13,7 @@ namespace MadeToRace.Vehicle
     {
         [SerializeField] private float restLength = 0.45f;
         [SerializeField] private float springStiffness = 4000f; // N/m (kart-ish)
-        [SerializeField] private float damper = 250f;           // N·s/m
+        [SerializeField] private float damper = 750f;           // N·s/m (~0.9 critical per wheel)
         [SerializeField] private float wheelRadius = 0.35f;     // matches visual wheels
 
         private Rigidbody _body;
@@ -39,16 +39,34 @@ namespace MadeToRace.Vehicle
             }
 
             Vector3 origin = transform.position;
-            if (Physics.Raycast(origin, -transform.up, out RaycastHit hit, restLength + wheelRadius))
+
+            // Raycast the suspension, skipping the vehicle's own colliders
+            // (body cube, part views) — only external surfaces load the tire.
+            RaycastHit hit = default;
+            bool grounded = false;
+            foreach (RaycastHit candidate in Physics.RaycastAll(origin, -transform.up, restLength + wheelRadius))
+            {
+                if (candidate.collider.transform.IsChildOf(_body.transform))
+                {
+                    continue;
+                }
+                hit = candidate;
+                grounded = true;
+                break;
+            }
+
+            if (grounded)
             {
                 _lastContactPoint = hit.point;
 
-                // Spring: compression beyond rest; damper: suspension velocity.
+                // Spring: compression beyond rest; damper: opposes the compression
+                // rate (F = k·c + b·ċ — adds force on the downswing, subtracts on
+                // the upswing; a flipped sign pumps energy into the bounce).
                 float compression = restLength - (hit.distance - wheelRadius);
-                float suspensionSpeed = Vector3.Dot(_body.GetPointVelocity(origin), -transform.up);
+                float compressionSpeed = Vector3.Dot(_body.GetPointVelocity(origin), -transform.up);
                 float springForce = springStiffness * compression;
-                float dampingForce = damper * suspensionSpeed;
-                float total = Mathf.Max(0f, springForce - dampingForce);
+                float dampingForce = damper * compressionSpeed;
+                float total = Mathf.Max(0f, springForce + dampingForce);
 
                 _body.AddForceAtPosition(transform.up * total, origin, ForceMode.Force);
                 _normalLoad = total;

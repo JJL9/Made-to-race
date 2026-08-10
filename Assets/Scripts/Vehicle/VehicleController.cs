@@ -99,9 +99,10 @@ namespace MadeToRace.Vehicle
                     ? -Mathf.Sign(speed) * grip * -throttle          // brake = grip-limited (ABS-ish)
                     : (i >= 2 ? forwardForce * 0.5f : 0f);           // rear wheels split the drive
 
-                // Lateral: tire resists sliding (self-aligning) + steer demand (front-biased).
+                // Lateral: tire resists sliding (self-aligning) + steer demand
+                // (front-biased, along the wheel axis → yaw moment).
                 Vector3 slideResist = -lateralVelocity.normalized * grip;
-                Vector3 steerForce = forward * steerAmount * grip * (i < 2 ? 1f : steerBias);
+                Vector3 steerForce = right * steerAmount * grip * (i < 2 ? 1f : steerBias);
                 Vector3 lateral = slideResist + steerForce;
 
                 // Friction circle: cap combined demand at μ × load.
@@ -124,10 +125,10 @@ namespace MadeToRace.Vehicle
             // Wheel slot layout matching the prototype vehicle (2×2 rectangle).
             Vector3[] localPositions =
             {
-                new Vector3(-1.1f, 0f, 1.4f),
-                new Vector3(1.1f, 0f, 1.4f),
-                new Vector3(-1.1f, 0f, -1.4f),
-                new Vector3(1.1f, 0f, -1.4f),
+                new Vector3(-1.1f, -0.4f, 1.4f),
+                new Vector3(1.1f, -0.4f, 1.4f),
+                new Vector3(-1.1f, -0.4f, -1.4f),
+                new Vector3(1.1f, -0.4f, -1.4f),
             };
 
             for (int i = 0; i < localPositions.Length; i++)

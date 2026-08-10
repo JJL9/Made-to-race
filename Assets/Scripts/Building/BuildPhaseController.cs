@@ -113,6 +113,12 @@ namespace MadeToRace.Building
                 SetColor(view, new Color(0.15f, 0.15f, 0.15f));
             }
 
+            // Part views are visual only — colliders on them overlap the body
+            // and ground (engine sits inside the body volume, wheels below the
+            // ground surface) and would fire depenetration forces. The raycast
+            // WheelModels + body carry all contact.
+            Object.Destroy(view.GetComponent<Collider>());
+
             _partViews[slotId] = view;
         }
 
