@@ -47,7 +47,7 @@ Product vision & requirements: [`PRD.md`](PRD.md). Decisions: [`DECISIONS.md`](D
 
 - [ ] **M0-5 — Finish line** (PRD R-6/R-7): trigger-based finish detection + lap/race time. *Ready.*
 - [ ] **M0-6 — Race start** (PRD R-5): build-phase → countdown → GO. *Ready.*
-- [ ] **M0-7 — Real build UI** (PRD BLD-3): part picker instead of keys 1/2/3
+- [ ] **M0-7 — Real build UI** — *claimed: Julius* — (PRD BLD-3): part picker instead of keys 1/2/3
       (wheel/engine cards, drag or click-to-place). *Ready.*
 - [ ] **M0-4.x — Rollover/crash behavior**: flipping the car is now possible —
       decide flop (reset to track) vs roll-back (physics). Design note needed
